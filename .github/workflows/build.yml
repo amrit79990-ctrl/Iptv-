@@ -1,0 +1,45 @@
+
+name: Build IPTV-Glass APK
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repository
+        uses: actions/checkout@v4
+
+      - name: Setup Java 17
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      - name: Setup Gradle
+        uses: gradle/actions/setup-gradle@v3
+        with:
+          gradle-version: 7.6.4
+
+      - name: Check Android Project
+        run: |
+          echo "Checking IPTV-Glass project..."
+          if [ ! -f settings.gradle ] || [ ! -f app/build.gradle ]; then
+            echo "Android source files are missing."
+            echo "A workflow file alone cannot create the complete IPTV app."
+            exit 1
+          fi
+
+      - name: Build IPTV-Glass APK
+        run: gradle assembleDebug
+
+      - name: Upload APK
+        uses: actions/upload-artifact@v4
+        with:
+          name: IPTV-Glass-APK
+          path: app/build/outputs/apk/debug/app-debug.apk
